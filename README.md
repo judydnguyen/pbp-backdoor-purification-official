@@ -1,11 +1,4 @@
-## PBP: Post-training Backdoor Purification for Malware Classification
-This work is under Major Revision, and we plan to conduct additional analysis and discussion regarding to:
-- Ablation study of effectiveness of components of PBP
-- Neuron Mask Generation procedure and Quantify the number of neural networks (NNs) that could potentially be purified
-- Discussion about the assumption of fine-tuning the dataset and defender knowledge
-- Detailed analysis of experimental results and potential broader applications
-  
-*The proposed modifications do not affect the claims and experiments in our submitted artifacts.*
+## Official Implementation for *PBP: Post-training Backdoor Purification for Malware Classification*
 
 ### Dataset Preparation
 **EMBER-v1 dataset**
@@ -23,7 +16,6 @@ datasets/
     ├── y_train.dat
     ├── X_test.dat
     └── y_test.dat
-
 ```
 - For easy repoducability objective, we provide the processed data EMBER-v1 [here](https://drive.google.com/drive/folders/1VvGAn8vU4N3VttALkx43K76LPgrqV7lO?usp=sharing).
 
