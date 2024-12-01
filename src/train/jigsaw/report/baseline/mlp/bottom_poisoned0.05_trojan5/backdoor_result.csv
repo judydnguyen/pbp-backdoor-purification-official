@@ -1,0 +1,3 @@
+random_state,poison_rate,trojan_size,backdoor_f1,backdoor_recall,backdoor_fpr,main_f1,main_recall,main_fpr
+42,0.05,5,-1.0000,-1.0000,nan,-1.0000,-1.0000,nan
+42,0.05,5,0.7084,0.5652,0.0034,0.8503,0.8023,0.0093
