@@ -1,4 +1,5 @@
-## Official Implementation for *PBP: Post-training Backdoor Purification for Malware Classification*
+## Official Implementation for NDSS'2025 paper *PBP: Post-training Backdoor Purification for Malware Classification*
+DOI: 10.14722/ndss.2025.240603
 
 ### Dataset Preparation
 **EMBER-v1 dataset**
@@ -17,7 +18,7 @@ datasets/
     ├── X_test.dat
     └── y_test.dat
 ```
-- For easy repoducability objective, we provide the processed data EMBER-v1 [here](https://zenodo.org/records/14253945?token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6IjlmNjRiOWFkLTIyMWUtNGVmZi04NmJmLTBhODg4YTkxMDJkZiIsImRhdGEiOnt9LCJyYW5kb20iOiI3YzQ5NzhmZTY5YjA1OTZjMjY3NWM2ZmI0ODYyN2U5YiJ9.a4WZjxQa0MdCvLkcgWmN18HM0GDJKYf4mrdiYO-mzz0xxbsu-J6B2uEhNcNyvpEY85Xth1rKEIk85f5ugfvKhA).
+- For easy reproducibility objective, we provide the processed data EMBER-v1 [here](https://zenodo.org/records/14253945?token=eyJhbGciOiJIUzUxMiJ9.eyJpZCI6IjlmNjRiOWFkLTIyMWUtNGVmZi04NmJmLTBhODg4YTkxMDJkZiIsImRhdGEiOnt9LCJyYW5kb20iOiI3YzQ5NzhmZTY5YjA1OTZjMjY3NWM2ZmI0ODYyN2U5YiJ9.a4WZjxQa0MdCvLkcgWmN18HM0GDJKYf4mrdiYO-mzz0xxbsu-J6B2uEhNcNyvpEY85Xth1rKEIk85f5ugfvKhA).
 
 **AndroZoo dataset**
 - We encourage interested readers to refer to the original authors of JIGSAW backdoor attacks to acquire preprocessed data for AndroZoo at [Explanation-guided Backdoor Attacks](https://github.com/ClonedOne/MalwareBackdoors). Our code uses the data shared by these authors, so we are not able to distribute it publicly.
