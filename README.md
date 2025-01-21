@@ -1,6 +1,9 @@
 ## Official Implementation for NDSS'2025 paper *PBP: Post-training Backdoor Purification for Malware Classification*
 DOI: 10.14722/ndss.2025.240603
 
+In recent years, the rise of machine learning (ML) in cybersecurity has brought new challenges, including the increasing threat of backdoor poisoning attacks on ML malware classifiers. These attacks aim to manipulate model behavior when provided with a particular input trigger. For instance, adversaries could inject malicious samples into public malware repositories, contaminating the training data and potentially misclassifying malware by the ML model. Current countermeasures predominantly focus on detecting poisoned samples by leveraging disagreements within the outputs of a diverse set of ensemble models on training data points. However, these methods are not suitable for scenarios where Machine Learning- as-a-Service (MLaaS) is used or when users aim to remove backdoors from a model after it has been trained. Addressing this scenario, we introduce PBP, a post-training defense for malware classifiers that mitigates various types of backdoor embeddings without assuming any specific backdoor embedding mechanism. Our method exploits the influence of backdoor attacks on the activation distribution of neural networks, independent of the trigger-embedding method. In the presence of a backdoor attack, the activation distribution of each layer is distorted into a mixture of distributions. By regulating the statistics of the batch normalization layers, we can guide a backdoored model to perform similarly to a clean one. Our method demonstrates substantial advantages over several state-of-the-art methods, as evidenced by experiments on two datasets, two types of backdoor methods, and various attack configurations. Our experiments showcase that PBP can mitigate even the SOTA backdoor attacks for malware classifiers, e.g., Jigsaw Puzzle, which was previously demonstrated to be stealthy against existing backdoor defenses. 
+![PBP-Pipeline](pbp-overall.png)
+
 ### Dataset Preparation
 **EMBER-v1 dataset**
 - Following instructions from the GitHub repo for EMBER dataset, we can download and extract EMBER dataset following the instruction of the original paper at [Explanation-guided Backdoor Attacks](https://github.com/ClonedOne/MalwareBackdoors).
@@ -56,6 +59,20 @@ Then put it at [models/ember/torch/embernn](models/ember/torch/embernn).
 
 ### [E1] Training and Fine-tuning with EMBER dataset
 - First, train a backdoor model by running `./train_backdoor_ember.sh`. This will generate four backdoored models corresponding to different poisoning ratios. The models should be saved at [saved_model_path](models/ember/torch/embernn/backdoor).
+
+```
+------- Final Evaluation -------
++-------------------+---------+
+| Metric            |   Value |
++===================+=========+
+| Main Accuracy     | 99.0135 |
++-------------------+---------+
+| Backdoor Accuracy | 95.067  |
++-------------------+---------+
+| Poisoning Rate    |  0.01   |
++-------------------+---------+
+```
+
 - Second, to fine-tune these models with different fine-tuning methods: run `./experiment1_finetune_backdoor_ember.sh`. This will generate six fine-tuned models corresponding to each poisoning ratio. The models should be saved at [saved_ft_model_path](models/ember/torch/embernn/).
 
 The successful results are presented in the following table:
@@ -64,45 +81,25 @@ The successful results are presented in the following table:
 +-----------+------------------+------------------------+
 | Mode      |   Clean Accuracy |   Adversarial Accuracy |
 +===========+==================+========================+
-| method    |          number  |                number  |
-
-Verified outperforms of PBP: [True, True, True, True, True]
-Completed in: 0:11:12.032413 seconds.
+| ft        |          99.003  |                96.2041 |
++-----------+------------------+------------------------+
+| ft-init   |          99.092  |                96.9629 |
++-----------+------------------+------------------------+
+| fe-tuning |          99.063  |                97.2255 |
++-----------+------------------+------------------------+
+| lp        |          99.0605 |                92.2477 |
++-----------+------------------+------------------------+
+| fst       |          98.9795 |                96.4668 |
++-----------+------------------+------------------------+
+| proposal  |          96.8865 |                11.4564 |
++-----------+------------------+------------------------+
+Completed in: 0:28:31.483780 seconds.
 ------- ********************** -------
 ```
 
 ### [E2] Training and Fine-tuning with AndroZoo dataset
 - First, train a backdoor model by running `./train_backdoor_jigsaw.sh`. This will generate four backdoored models corresponding to different poisoning ratios. The models should be saved at [saved_model_path](models/ember/torch/embernn/backdoor).
 - Second, to fine-tune these models with different fine-tuning methods: run `./experiment2_finetune_backdoor_jigsaw.sh`. This will generate six fine-tuned models corresponding to each poisoning ratio. The models should be saved at [saved_ft_model_path](models/ember/torch/embernn/).
-
-The successful results are presented in the following table:
-```
-------- Fine-tuning Evaluation -------
-+-----------+------------------+------------------------+
-| Mode      |   Clean Accuracy |   Adversarial Accuracy |
-+===========+==================+========================+
-| method    |          number  |                number  |
-
-Verified outperforms of PBP: [True, True, True, True, True]
-Completed in: 0:22:23.674250 seconds.                                                             
-------- ********************** -------
-```
-
-<!-- ## How to start fine-tuning a backdoored model
-We provide checkpoints to reproduce  the results in Table III.
-
-The checkpoints are the weight of backdoored models with AndroZoo stored at `models/apg/torch/embernn/backdoor`
-```
-chmod +x ./run_baselines_jigsaw.sh &&
-./run_baselines_jigsaw.sh
-```
-The corresponding logging results will be stored at  -->
-
-<!-- ## How to start training a backdoor model:
-```
-chmod +x ./train_models.sh
-```
-We provide both scripts for training backdoor for AndroZoo and EMBER datasets. -->
 
 
 ### Main Hyper-parameters Table

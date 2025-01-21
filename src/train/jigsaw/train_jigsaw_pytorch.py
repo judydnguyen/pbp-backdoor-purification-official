@@ -1,9 +1,5 @@
 """
-Script to train APG image malware classifiers.
-
-NOTES:
-models = [linear-2, 4-2, 16-2]
-
+Script to train backdoored malware classifiers on APG dataset.
 """
 import copy
 import json
@@ -31,7 +27,6 @@ from jigsaw.jigsaw_helper import load_np_apg_data
 from jigsaw.jigsaw_utils import get_apg_backdoor_data, get_jigsaw_config, load_apg_data_loaders, load_apg_subset_data_loaders, load_features, pre_split_apg_datasets
 # from jigsaw.models_bak import MLP
 
-# logger.info(f"parent_dir_path: {parent_dir_path}")
 
 import torch.optim as optim
 
@@ -45,11 +40,8 @@ from explainable_backdoor_utils import get_backdoor_data
 
 from models.cnn import CNN
 from models.mobilenet import MobileNetV2
-from models.resnet_bak import ResNet18
 from models.embernn import EmberNN
-from models.simple import DeepNN, SimpleModel
-from models.CNN_Models import CNNMalware_Model1
-from models.ANN_Models import ANNMalware_Model1, MalConv
+from models.simple import SimpleModel
 from utils import final_evaluate, logger
 from attack_utils import load_wm
 
@@ -100,7 +92,7 @@ def test(model, test_loader, device):
     correct = 0
     targets = []
     with torch.no_grad():
-        for batch_idx, (data, target) in tqdm(enumerate(test_loader)):
+        for _, (data, target) in tqdm(enumerate(test_loader)):
             data = data.to(device)
             target = target.to(device).float()
             # targets.append(target.detach().cpu().numpy())
@@ -108,12 +100,10 @@ def test(model, test_loader, device):
             output = model(data).squeeze() 
         
             test_loss += criterion(output, target).item()
-            # pred = output.data.max(1)[1]
             # Calculate training accuracy
             pred = torch.round(torch.sigmoid(output))  # Round to get binary predictions
             correct += (pred == target).sum().item()
 
-            # correct += pred.eq(target.view(-1)).sum().item()
     logger.info(colored(f"[Clean] Testing loss: {test_loss/len(test_loader)}, \t Testing Accuracy: {correct /len(test_loader.dataset)}, \t Num samples: {len(test_loader.dataset)}", "green"))
     correct = 100.0 * correct
     return test_loss/len(test_loader), correct /len(test_loader.dataset)
@@ -133,8 +123,6 @@ def train(model, train_loader, device, total_epochs=10, lr=0.001):
 
             optimizer.zero_grad()
             outputs = model(inputs).squeeze()
-            # import IPython
-            # IPython.embed()
             loss = criterion(outputs, labels).mean()
             loss.backward()
             optimizer.step()
@@ -191,7 +179,7 @@ def train_backdoor(model, train_loader, val_loader, backdoor_loader, device,
             correct += (predicted == labels).sum().item()
             total += labels.size(0)
 
-        _, test_acc = test(model, val_loader, device)
+        test(model, val_loader, device)
         _, bd_acc, _, _ = test_backdoor(model, backdoor_loader, device)
         
         if bd_acc >= best_bd_acc:
@@ -219,7 +207,7 @@ def test_backdoor(model, test_loader, device,
     preds = []
     gt_y = []
     with torch.no_grad():
-        for batch_id, batch in tqdm(enumerate(test_loader)):
+        for _, batch in tqdm(enumerate(test_loader)):
             data, targets = batch
             data, targets = data.to(device), targets.to(device).float()
             poison_num = data.shape[0]
@@ -235,7 +223,6 @@ def test_backdoor(model, test_loader, device,
     
     preds = torch.cat(preds)
     gt_y = torch.cat(gt_y)
-    # print(f"preds - gt_y = {preds - gt_y}")
     acc = 100.0 * (float(correct) / float(poison_data_count)) if poison_data_count!=0 else 0
     total_l = total_loss / poison_data_count if poison_data_count!=0 else 0
     logger.info(colored(f"[Backdoor] Testing loss: {total_l}, \t Testing Accuracy: {correct /len(test_loader.dataset)}, \t Num samples: {poison_data_count}", "red"))
@@ -285,32 +272,18 @@ if __name__ == "__main__":
     num_features = train_dl.dataset[0][0].shape[0]
     logger.info(f"Num features: {num_features}")
 
-    # train_dl, valid_df, ft_dl = get_train_test_ft_loaders(args.datapath, args.batch_size, 
-    #                                                     args.test_batch_size, args.imsize, 
-    #                                                     args.ft_size)
-
-    name = "linear" if args.conv1 == 0 else args.conv1
-    args.name = f"malware_apg_family_scaled_{name}-25"
-
     # -----*------ #
     # --Training-- #
     # -----*------ #
 
     if args.model == "cnn":
         model = CNN(args.imsize, num_features, args.conv1, args.classes)
-    elif args.model == "mlp":
-        model = MLP(num_features=args.n_features, dims=[])
     elif args.model == "simple":
         model = SimpleModel(num_features, 16)
     elif args.model == "mobilenetv2":
         model = MobileNetV2(num_features, args.classes)
-    elif args.model == "resnet":
-        model = ResNet18(num_classes=args.classes)
     elif args.model == "embernn":
         model = EmberNN(num_features)
-        # model = DeepNN(n_features=num_channels)
-        # model = ANNMalware_Model1(num_channels, 2)
-        # model = MalConv(num_channels)
     else:
         pass
     model.to(device)
@@ -386,29 +359,3 @@ if __name__ == "__main__":
     #                                    X_test_benign_trojan=X_test_benign, 
     #                                    subset_family=args.subset_family, 
     #                                    troj_type="Subset", log_path=log_parent_dir)
-                                           
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# General Main Function
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%            
-# if __name__ == "__main__":
-#     #
-#     # Get and validate arguments
-#     #
-#     args = get_args()
-#     if args.name == None:
-#         name = "none" if args.conv1 == 0 else args.conv1
-#         args.name = f"malware_malimg_family_scaled_{name}-25"    #
-#     # Training
-#     #
-#     logger.info("\n-------- Training Parameters --------- ")
-#     logger.info(f"NORMALIZE: {not args.no_normalize}")
-#     logger.info(f"NAME: {args.name}")
-#     logger.info(f"IMSIZE: {args.imsize}")
-#     logger.info(f"CONV1: {args.conv1}")
-#     logger.info(f"EPOCHS: {args.epochs}")
-    
-#     logger.info("\n-------- Training --------- ")
-
-#     # train_family_classifier(args)
-
-        

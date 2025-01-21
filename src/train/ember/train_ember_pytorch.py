@@ -1,8 +1,5 @@
 """
-Script to train Malimg image malware classifiers and save to .h5 file for verification.
-
-NOTES:
-models = [linear-2, 4-2, 16-2]
+Training a backdoored malware classifier with ember dataset
 
 """
 import copy
@@ -22,7 +19,6 @@ parent_dir_path = os.path.abspath(os.path.join(dir_path, os.pardir))
 
 sys.path.insert(0, parent_dir_path)
 sys.path.append("../")
-# sys.path.append("../../")
 
 import torch.optim as optim
 from torch.utils.data import DataLoader, Subset, TensorDataset, Dataset
@@ -36,11 +32,8 @@ import os
 from explainable_backdoor_utils import get_backdoor_data
 from models.cnn import CNN
 from models.mobilenet import MobileNetV2
-from models.resnet_bak import ResNet18
 from models.embernn import EmberNN
-from models.simple import DeepNN, SimpleModel
-from models.CNN_Models import CNNMalware_Model1
-from models.ANN_Models import ANNMalware_Model1, MalConv
+from models.simple import SimpleModel
 from utils import final_evaluate, logger
 from attack_utils import load_wm
 
@@ -99,7 +92,7 @@ def test(model, test_loader, device):
     correct = 0
     targets = []
     with torch.no_grad():
-        for batch_idx, (data, target) in tqdm(enumerate(test_loader)):
+        for _, (data, target) in tqdm(enumerate(test_loader)):
             data = data.to(device)
             target = target.to(device).float()
 
@@ -109,7 +102,6 @@ def test(model, test_loader, device):
             pred = torch.round(torch.sigmoid(output))  # Round to get binary predictions
             correct += (pred == target).sum().item()
 
-            # correct += pred.eq(target.view(-1)).sum().item()
     logger.info(colored(f"[Clean] Testing loss: {test_loss/len(test_loader)}, \t Testing Accuracy: {correct /len(test_loader.dataset)}, \t Num samples: {len(test_loader.dataset)}", "green"))
     correct = 100.0 * correct
     return test_loss/len(test_loader), correct /len(test_loader.dataset)
@@ -129,14 +121,12 @@ def train(model, train_loader, device, total_epochs=10, lr=0.001):
 
             optimizer.zero_grad()
             outputs = model(inputs).squeeze()
-            # import IPython
-            # IPython.embed()
+
             loss = criterion(outputs, labels).mean()
             loss.backward()
             optimizer.step()
 
             running_loss += loss
-
             # Calculate training accuracy
             predicted = torch.round(torch.sigmoid(outputs))
             correct += (predicted == labels).sum().item()
@@ -202,8 +192,8 @@ def train_backdoor(model, train_loader, val_loader, backdoor_loader, device,
             correct += (predicted == labels).sum().item()
             total += labels.size(0)
 
-        _, test_acc = test(model, val_loader, device)
-        _, _, _, _ = test_backdoor(model, backdoor_loader, device)
+        test(model, val_loader, device)
+        test_backdoor(model, backdoor_loader, device)
         epoch_loss = running_loss / len(train_loader)
         epoch_acc = correct / total
         logger.info(f"Epoch {epoch + 1}/{total_epochs}, Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.4f}")
@@ -274,15 +264,12 @@ if __name__ == "__main__":
     # --Training-- #
     # -----*------ #
     
-    # logger.info("\n-------- Training --------- ")
     if args.model == "cnn":
         model = CNN(args.imsize, num_channels, args.conv1, args.classes)
     elif args.model == "simple":
         model = SimpleModel(num_channels, 16)
     elif args.model == "mobilenetv2":
         model = MobileNetV2(num_channels, args.classes)
-    elif args.model == "resnet":
-        model = ResNet18(num_classes=args.classes)
     elif args.model == "embernn":
         model = EmberNN(num_channels)
     else:

@@ -30,7 +30,6 @@ from finetune_helper import add_args, get_optimizer
 from models.cnn import CNN
 from models.embernn import EmberNN
 from models.mobilenet import MobileNetV2
-from models.resnet_bak import ResNet18
 from models.simple import SimpleModel
 
 import torch

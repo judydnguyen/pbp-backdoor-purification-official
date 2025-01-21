@@ -33,7 +33,6 @@ from ft_dataset import get_backdoor_loader, get_em_bd_loader, load_data_loaders,
 from models.cnn import CNN
 from models.embernn import EmberNN
 from models.mobilenet import MobileNetV2
-from models.resnet_bak import ResNet18
 from models.simple import SimpleModel
 
 import torch
@@ -218,8 +217,6 @@ def main():
         net = SimpleModel(num_channels, 16)
     elif args.model == "mobilenetv2":
         net = MobileNetV2(num_channels, args.classes)
-    elif args.model == "resnet":
-        net = ResNet18(num_classes=args.classes)
     elif args.model == "embernn":
         net = EmberNN(num_channels)
     
